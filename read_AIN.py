@@ -21,7 +21,7 @@ class LabJackApp(tk.Tk):
 
         self.figure = Figure(figsize=(10, 4), dpi=100)
         self.ax = self.figure.add_subplot(121)  # First subplot for the bar graph
-        self.ax2 = self.ax.twinx()  # Secondary y-axis for Bar
+        self.ax2 = self.ax.twinx()  # Secondary y-axis for MPa
         self.ax3 = self.figure.add_subplot(122)  # Second subplot for the pressure graph
 
         self.canvas = FigureCanvasTkAgg(self.figure, master=self)
@@ -31,23 +31,23 @@ class LabJackApp(tk.Tk):
         self.pressure_readings = [0] * 60  # Store last 60 readings, initialize with zeros.
 
         # Start the update loops
-        self.update_bar_plot()
+        self.update_MPa_plot()
         self.update_pressure_plot()
 
         # Bind the window close event
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    def psi_to_bar(self, psi):
-        return psi * 0.0689476
+    def psi_to_MPa(self, psi):
+        return psi * .00689476
 
     def read_voltage(self):
         return self.lj.getAIN(0)
 
-    def update_bar_plot(self):
+    def update_MPa_plot(self):
         voltage = self.read_voltage()
         adjusted_voltage = voltage - self.offset_voltage
         psi = adjusted_voltage / 6.0 * 5000
-        bar = self.psi_to_bar(psi)
+        bar = self.psi_to_MPa(psi)
 
         self.ax.clear()
         self.ax2.clear()
@@ -56,7 +56,7 @@ class LabJackApp(tk.Tk):
         self.ax.set_ylim(0, 6000)
         self.ax.set_ylabel('Pressure (PSI)')
 
-        self.ax2.set_ylim(0, self.psi_to_bar(6000))
+        self.ax2.set_ylim(0, self.psi_to_MPa(6000))
 
         self.ax.text(0.5, -0.1, f'Pressure: {psi:.2f} PSI', horizontalalignment='center', 
                      verticalalignment='top', transform=self.ax.transAxes)
@@ -64,7 +64,7 @@ class LabJackApp(tk.Tk):
         self.canvas.draw()
 
         # Update the bar plot every 100 milliseconds (10 Hz)
-        self.after(100, self.update_bar_plot)
+        self.after(100, self.update_MPa_plot)
 
     def update_pressure_plot(self):
         voltage = self.read_voltage()
@@ -78,7 +78,7 @@ class LabJackApp(tk.Tk):
         self.ax3.clear()
         self.ax3.plot(range(60), self.pressure_readings, '-', color='blue')
         self.ax3.set_ylim(0, 6000)
-        self.ax3.set_ylabel('Pressure (Bar)')
+        self.ax3.set_ylabel('Pressure (MPa)')
         self.ax3.set_xlabel('Last 60 readings')
         self.ax3.set_xlim(0, 59)
 
