@@ -29,6 +29,11 @@ class LabJackApp(tk.Tk):
         self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.pressure_readings = [0] * 60  # Store last 60 readings, initialize with zeros.
+        
+        # Max pressure
+        self.max_pressure = 0
+        reset_button = tk.Button(self, text = "Reset max pressure", command=self.reset_max_pressure)
+        reset_button.pack()
 
         # Start the update loops
         self.update_MPa_plot()
@@ -37,6 +42,10 @@ class LabJackApp(tk.Tk):
         # Bind the window close event
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    def reset_max_pressure(self):
+        # Resets the max pressure to the current reading
+        self.max_pressure = 0
+    
     def psi_to_MPa(self, psi):
         return psi * .00689476
 
@@ -74,18 +83,23 @@ class LabJackApp(tk.Tk):
         # Update the readings list
         self.pressure_readings.insert(0, psi)
         self.pressure_readings = self.pressure_readings[:60]
+        
+        if psi > self.max_pressure:
+            self.max_pressure = psi
 
         self.ax3.clear()
         self.ax3.plot(range(60), self.pressure_readings, '-', color='blue')
+
+        self.ax3.axhline(y=self.max_pressure, color='red', linestyle='-')
+
         self.ax3.set_ylim(0, 6000)
         self.ax3.set_ylabel('Pressure (MPa)')
         self.ax3.set_xlabel('Last 60 readings')
         self.ax3.set_xlim(0, 59)
 
+
         # Avoid overlapping labels
         self.figure.tight_layout()
-        self.canvas.draw()
-
         self.canvas.draw()
 
         # Update the pressure plot every second (1 Hz)
